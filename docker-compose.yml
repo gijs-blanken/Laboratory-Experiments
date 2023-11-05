@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  microservice:
+    build:
+      context: ./microservice
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ./auth:/auth
+    depends_on:
+      - db
+
+  rest-api:
+    build:
+      context: ./rest-api
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3003:3003"
+    depends_on:
+      - db
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus-config.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "3008:9090"
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  pgadmin-data:

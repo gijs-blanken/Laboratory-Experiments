@@ -1,0 +1,7 @@
+target/
+ca.key
+.env*
+*.log*
+.idea/
+*/.DS_Store
+.DS_Store
